@@ -1,0 +1,622 @@
+<!Doctype html>
+<html lang='en'>
+<head>
+<title>Bubble Sort</title>
+<meta charset='UTF-8'>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <script src="artyom.window.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <h1 class="text-center" >Bubble Sort</h1>
+    </div>
+    <div class="col-md-4"></div>
+    </div>
+<br/>
+<div class="row">
+<div class="col-md-1"></div>
+    <div class="col-md-10">
+<label>Number of Elements</label>
+&nbsp
+<input type='number' id='numberOfBlocks'>
+&nbsp&nbsp
+<button class='btn btn-primary' type='button' id='confirmButton' onclick='setNumberOfBlocks()'>Confirm</button>
+&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+    <a class='btn btn-primary'  href="https://localhost:8443/dataStructureVisualization/index.html">Home</a>
+&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+<button class='btn btn-primary' type='button' onclick='reset()'>reset</button>
+&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+<input type='number' id='element'>
+&nbsp
+<button class='btn btn-primary' type='button' id='insertButton' onclick='insertNumber()'>Insert</button>
+&nbsp
+<button style='postion:absolute;top:50%' class='btn btn-primary' type='button' id='sortButton' onclick='linearSortStep()'>Sort</button>
+</div>
+<div class="col-md-1"></div>
+</div>
+&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp&nbsp
+<span id="errorSpan" style="color:red"></span>
+<br/>
+<div class="row">
+    <div class="col-md-1"></div>
+    <div class="col-md-10">
+    <canvas id="sortingCanvas" width="1300" height="575" style='border: 2px solid black'></canvas>
+    </div>
+    <div class="col-md-1"></div>
+</div>    
+
+<script>
+    var canvas=document.getElementById('sortingCanvas');
+    var ctx=canvas.getContext('2d');
+    var blocks=[];
+    var numberOfBlocks=-1;  
+    var blockHeight=100;
+    var blockWidth=150;
+    var widthOffset=10;
+    var heightOffset=280;
+    var numWidthOffset=5;
+    var numHeightOffset=58;
+    var indexHeightOffset=50;
+    var statusX=45;
+    var statusY=50;
+    var statusElement1;
+    var statusElement2;
+    var statusElementQindex;
+    var statusElementPindex;
+    var insertionIndex=-1;
+    var p=0;//i
+    var q=1;//j
+    var m;
+    var linearSortCase=0;
+    var case1Counter=0
+    var status=0;
+    var tempBlock=new Block(10,450);
+    
+    var nInW = [
+    'zero',
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+    'eleven',
+    'twelve',
+    'thirteen',
+    'fourteen',
+    'fifteen',
+    'sixteen',
+    'seventeen',
+    'eighteen',
+    'nineteen',
+    'twenty',
+];
+    const artyom = new Artyom();
+    function StartArtyom()
+{
+    artyom.initialize(
+        {
+          lang:"en-GB",
+          continuous:true,
+          listen:true,
+          debug:true,
+          speed:1  
+        })
+}
+
+    function Block(x,y,color)
+    {
+        this.number=undefined;
+        this.x=x;
+        this.y=y;
+        this.color=color;
+        this.toDraw=true;
+    }
+
+    function setNumberOfBlocks()
+    {   document.getElementById('numberOfBlocks').disabled=true;
+        numberOfBlocks=parseInt(document.getElementById('numberOfBlocks').value);
+        var block,x,y;
+        m=numberOfBlocks;
+        if(numberOfBlocks<2)
+        {
+            document.getElementById('numberOfBlocks').disabled=false;
+            document.getElementById('errorSpan').innerHTML="Number of elements can't be less then 2";
+            return;
+        }
+        else
+        {
+            document.getElementById('errorSpan').innerHTML=""; 
+        }
+        for(var i=0;i<numberOfBlocks;i++)
+        {
+            x=widthOffset+i*(blockWidth+widthOffset);
+            y=heightOffset;
+            block=new Block(x,y,'black');
+            blocks.push(block);
+        }
+        tempBlock.toDraw=false;
+        drawBlocks();
+        document.getElementById('confirmButton').disabled=true;
+        document.getElementById('element').style.display='';
+        document.getElementById('element').focus();
+        document.getElementById('insertButton').style.display='';
+    }
+    function drawBlocks()
+    {   
+        var block,indexX,indexY,indexNumWidth;
+        var element,x,y,numWidth;
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "25px Arial";
+        if(status==1)
+        {   
+            ctx.fillStyle="black";
+            ctx.fillText("Status: Evaluating, if "+statusElement2+" of ",statusX,statusY);
+            ctx.fillStyle="blue";
+            ctx.fillText(statusElementQindex,statusX+ctx.measureText("Status: Evaluating, if "+statusElement2+" of ").width,statusY);
+            ctx.fillStyle="black";
+            ctx.fillText(" is less than "+statusElement1+" of ",statusX+ctx.measureText("Status: Evaluating, if "+statusElement2+" of "+statusElementQindex).width,statusY);
+            ctx.fillStyle="blue";
+            ctx.fillText(statusElementPindex,statusX+ctx.measureText("Status: Evaluating, if "+statusElement2+" of "+statusElementQindex+" is less than "+statusElement1+" of ").width,statusY);
+            ctx.fillStyle="black";
+        }
+        if(status==2)
+        {
+             ctx.fillStyle="black";
+             ctx.fillText("Status: Swapping, because "+statusElement1+" of ",statusX,statusY);
+             ctx.fillStyle="blue";
+             ctx.fillText(statusElementQindex,statusX+ctx.measureText("Status: Swapping, because "+statusElement1+" of ").width,statusY);
+             ctx.fillStyle="black";
+             ctx.fillText(" is less than "+statusElement2+" of ",statusX+ctx.measureText("Status: Swapping, because "+statusElement1+" of "+statusElementQindex).width,statusY)
+             ctx.fillStyle="blue";
+             ctx.fillText(statusElementPindex,statusX+ctx.measureText("Status: Swapping, because "+statusElement1+" of "+statusElementQindex+" is less than "+statusElement2+" of ").width,statusY);
+             ctx.fillStyle="black";
+        }
+        if(status==3)
+        {
+            ctx.fillStyle="black";
+            ctx.fillText("Status: "+statusElement2+" of ",statusX,statusY);
+            ctx.fillStyle="blue";
+            ctx.fillText(statusElementQindex,statusX+ctx.measureText("Status: "+statusElement2+" of ").width,statusY);
+            ctx.fillStyle="black";
+            ctx.fillText(" is not less than "+statusElement1+" of ",statusX+ctx.measureText("Status: "+statusElement2+" of "+statusElementQindex).width,statusY)
+            ctx.fillStyle="blue";
+            ctx.fillText(statusElementPindex,statusX+ctx.measureText("Status: "+statusElement2+" of "+statusElementQindex+" is not less than "+statusElement1+" of ").width,statusY)
+            ctx.fillStyle="black";
+            ctx.fillText(", therefore no change",statusX+ctx.measureText("Status: "+statusElement2+" of "+statusElementQindex+" is not less than "+statusElement1+" of "+statusElementPindex).width,statusY);
+        }
+        if(status==4)
+        {
+            ctx.fillStyle="black";
+            ctx.fillText("Status: All the elements have been sorted in ascending order",statusX,statusY);
+        }
+        //if(createTempBlock) drawTempBlock();
+        //if(sortStep!=0) ctx.fillText("Step: "+sortStep,stepX,stepY);
+        if((blocks[blocks.length-1].x+blockWidth)>canvas.width) canvas.width=blocks[blocks.length-1].x+blockWidth+widthOffset;
+        for(var i=0;i<blocks.length;i++)
+        {
+        block=blocks[i];
+        ctx.beginPath();
+        //console.log(block.x+" "+block.y+" "+block.color);
+        ctx.strokeStyle = block.color;
+        ctx.rect(block.x,block.y,blockWidth,blockHeight);
+        if(block.color=='black') ctx.lineWidth = 10;
+        else ctx.lineWidth = 10;
+        ctx.stroke();
+        ctx.font = "50px Arial";
+        ctx.fillStyle="blue";
+        indexNumWidth=ctx.measureText(i).width;
+        indexX=block.x+(blockWidth-indexNumWidth)/2;
+        indexY=block.y+blockHeight+indexHeightOffset;
+        ctx.fillText(i,indexX,indexY);
+        ctx.fillStyle="black";
+        if(blocks[i].number!=undefined)
+        {
+            ctx.font = "25px Arial";
+            numWidth=ctx.measureText(blocks[i].number).width;
+            numWidthOffset=Math.round((blockWidth-numWidth)/2);
+            x=blocks[i].x+numWidthOffset;
+            y=blocks[i].y+numHeightOffset;
+            ctx.fillText(blocks[i].number, x,y);
+        }
+        }
+        if(tempBlock.toDraw==true)
+        {
+            ctx.beginPath();
+            ctx.strokeStyle = tempBlock.color;
+            ctx.rect(tempBlock.x,tempBlock.y,blockWidth,blockHeight);
+            ctx.lineWidth = 10;
+            ctx.stroke();
+            numWidth=ctx.measureText(tempBlock.number).width;
+            numWidthOffset=Math.round((blockWidth-numWidth)/2);
+            x=tempBlock.x+numWidthOffset;
+            y=tempBlock.y+numHeightOffset;
+            ctx.font = "25px Arial";
+            ctx.fillText(tempBlock.number,x,y);
+        }
+        if(status==2&&case1Counter==2)
+        {   var blockPtempX=blocks[p].x+(blockWidth/2);
+            var blockPtempY=blocks[p].y;
+            var blockQtempX=blocks[q].x+(blockWidth/2);
+            var blockQtempY=blocks[q].y;
+            ctx.lineWidth=1;
+            ctx.strokeStyle = 'black';
+            drawLine(blockPtempX,blockPtempY,blockPtempX,blockPtempY-blockHeight-2);
+            drawLine(blockPtempX,blockPtempY-blockHeight,blockQtempX+2,blockQtempY-blockHeight);
+            drawLine(blockQtempX,blockQtempY-blockHeight,blockQtempX,blockQtempY);
+        }
+        //if(p!=numberOfBlocks-1) document.getElementById('sortButton').disabled=false;
+    }
+    var xStep=0;
+    var yStep=0;
+    function drawLine(ix,iy,fx,fy)
+    {
+        
+        ctx.beginPath();
+        ctx.moveTo(ix,iy);
+        ctx.lineTo(fx,fy);
+        ctx.stroke();
+    }
+    function animateLine(ix,iy,fx,fy,xStep,yStep, lineCase)
+    {
+        var currentx=ix;
+        var currenty=iy;
+        var animationId=setInterval(function(){
+            //drawBlocks();
+            ctx.lineWidth=10;
+            ctx.strokeStyle = 'red';
+            if(lineCase==INILESSTHANFINAL && (currentx>fx || currenty>fy)) clearInterval(animationId);
+            if(lineCase==INIGREATERTHANFINAL && (currentx<fx || currenty<fy)) clearInterval(animationId);
+            drawLine(ix,iy,currentx,currenty);
+            currentx+=xStep;
+            currenty+=yStep;
+        },5);       
+    }
+    var INIGREATERTHANFINAL=1;
+    var INILESSTHANFINAL=2;
+    function animateBlock(block,xStep,yStep)
+    {
+        drawBlocks();
+        animateLine(block.x,block.y,block.x+blockWidth+4,block.y,xStep,0,INILESSTHANFINAL);
+        animateLine(block.x+blockWidth,block.y,block.x+blockWidth,block.y+blockHeight+4,0,yStep,INILESSTHANFINAL);
+        animateLine(block.x+blockWidth,block.y+blockHeight,block.x-4,block.y+blockHeight,-(xStep),0,INIGREATERTHANFINAL);
+        animateLine(block.x,block.y+blockHeight,block.x,block.y-4,0,-yStep,INIGREATERTHANFINAL);
+    }
+    function insertNumber()
+    {
+        document.getElementById('element').focus();
+        var num=document.getElementById('element');
+        if(num.value=='')
+        {
+        document.getElementById('errorSpan').innerHTML="Please insert a value";
+        return;
+        }
+        else
+        {
+            document.getElementById('errorSpan').innerHTML="";
+        }
+        blocks[++insertionIndex].number=(num.value);
+        drawBlocks();
+        if((insertionIndex+1)==numberOfBlocks)
+        {
+        num.value='';
+        num.disabled=true;
+        document.getElementById('insertButton').disabled=true;
+        document.getElementById('sortButton').style.display='';
+        }
+        document.getElementById('element').value='';
+    }
+
+    function linearSortStep()
+    {   
+        //document.getElementById('sortButton').disabled=true;
+        var numHalfWidth,replaceBlock;
+        var id,moveX,moveY,moveX1,moveY1,newX,newY,diffX,diffY;
+        document.getElementById('sortButton').innerHTML="Next";
+        for(var a=0;a<blocks.length;a++) blocks[a].color='black';
+        var block;
+        if(linearSortCase==0)
+        {
+        statusElement1=blocks[p].number;
+        statusElementPindex=p;
+        statusElement2=blocks[q].number;
+        statusElementQindex=q;
+        status=1;
+
+        animateBlock(blocks[p],3,3);
+        animateBlock(blocks[q],3,3);
+        // blocks[p].color='red';
+        // blocks[q].color='red';
+        if(parseInt(blocks[p].number)>parseInt(blocks[q].number))
+        {
+        linearSortCase=1;
+        tempBlock.x=blocks[p].x;
+        //animateBlock(tempBlock,3,3);
+        }
+        else linearSortCase=2;
+        }
+        else if(linearSortCase==1)
+        {
+        status=2;
+        tempBlock.toDraw=true;
+        //tempBlock.color=blocks[p].color=blocks[q].color='blue';
+        if(case1Counter==0)
+        {
+        
+        statusElement1=blocks[q].number;
+        statusElement2=blocks[p].number;
+        //tempBlock.color=blocks[p].color='green';
+        tempBlock.number=blocks[p].number;
+       
+        }
+        else if(case1Counter==1)
+        {
+        
+        statusElement1=blocks[q].number;
+        statusElement2=tempBlock.number;
+        //blocks[p].color=blocks[q].color='green';
+        numWidth=ctx.measureText(blocks[q].number).width;
+        numWidthOffset=Math.round((blockWidth-numWidth)/2);
+        moveX=blocks[q].x+numWidthOffset;
+        moveY=blocks[q].y+numHeightOffset;
+        numHalfWidth=Math.round((ctx.measureText(blocks[q].number).width)/2);
+        numHalfHeight=Math.round((ctx.measureText(blocks[q].number).height)/2);
+        
+        document.getElementById('sortButton').disabled=true;
+        id=setInterval(function() 
+        {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        drawBlocks();
+        ctx.font="25px Arial";
+        ctx.fillText(blocks[q].number,moveX,moveY);
+        if(moveY>(blocks[q].y-blockHeight+8)&&moveX!=blocks[p].x+(blockWidth/2)-numHalfWidth) moveY=moveY-1;
+        else 
+        if(moveX==blocks[p].x+(blockWidth/2)-numHalfWidth)
+        {
+            moveY=moveY+1;
+        }
+        else
+        moveX=moveX-1;
+        if(moveY==(blocks[p].y+numHeightOffset))
+        {   
+            blocks[p].number=blocks[q].number;
+            drawBlocks();
+           
+            document.getElementById('sortButton').disabled=false;
+            clearInterval(id);}
+        //console.log(moveX);
+        //console.log(blocks[p].x+blockWidth/2-numHalfWidth);
+        },5);
+        
+        }
+        else if(case1Counter==2)
+        {
+        //done done
+        numWidth=ctx.measureText(tempBlock.number).width;
+        numWidthOffset=Math.round((blockWidth-numWidth)/2);
+        moveX=tempBlock.x+numWidthOffset;
+        moveY=tempBlock.y+numHeightOffset;
+        numHalfWidth=Math.round((ctx.measureText(blocks[q].number).width)/2);
+        numHalfHeight=Math.round((ctx.measureText(blocks[q].number).height)/2);
+        
+        numWidth=ctx.measureText(blocks[q].number).width;
+        numWidthOffset=Math.round((blockWidth-numWidth)/2);
+        moveX1=blocks[q].x+numWidthOffset-numHalfWidth;
+        moveY1=blocks[q].y+numHeightOffset;
+        console.log(moveX);
+        console.log(moveY);
+        console.log(moveX1);
+        console.log(moveY1);
+        newX=moveX;
+        newY=moveY;
+        diffY=moveY1-moveY;
+        diffX=moveX1-moveX;
+        replaceBlock=blocks[q];
+        document.getElementById('sortButton').disabled=true;
+        id=setInterval(function()
+        {    
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            drawBlocks();
+            ctx.font="25px Arial";
+            ctx.fillText(tempBlock.number,newX,newY);
+            if(newX<moveX1)
+            {   
+                newX++;
+                newY=(((diffY)/(diffX))*(newX-moveX))+moveY;
+            }
+            else
+            {
+                replaceBlock.number=tempBlock.number;
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                tempBlock.toDraw=false;
+                drawBlocks();
+                if(q<numberOfBlocks)
+                document.getElementById('sortButton').disabled=false;
+                clearInterval(id);
+            }
+        },5)
+        //done done
+        statusElement1=blocks[p].number;
+        statusElement2=tempBlock.number;
+        //tempBlock.color=blocks[q].color='green';
+        //blocks[q].number=tempBlock.number;
+       // ctx.clearRect(0,0,canvas.width,canvas.height);
+        //drawBlocks();
+        linearSortCase=0;
+        case1Counter=-1;
+        p++;
+        q++;
+        if(q==m)
+        {
+        p=0;
+        q=1;
+        m--;
+        }
+        if(m==1)
+        {
+            document.getElementById('sortButton').disabled=true;
+            status=4;
+        }
+        }
+        case1Counter++;
+        }
+        else if(linearSortCase==2)
+        {
+        linearSortCase=0;
+        status=3;
+        p++;
+        q++;
+        if(q==m)
+        {
+        p=0;
+        q=1;
+        m--;
+        }
+        if(m==1)
+        {
+            document.getElementById('sortButton').disabled=true;
+            status=4;
+        } 
+        
+        }
+        drawBlocks();
+        
+    }
+    
+    function reset()
+    {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    blocks=[];
+    numberOfElements=0;
+    p=0;
+    q=1;
+    linearSortCase=0;
+    case1Counter=0;
+    insertionIndex=-1;
+    sortStep=0;
+    status=0;
+    document.getElementById('sortButton').innerHTML="Sort";
+    document.getElementById('numberOfBlocks').value="";
+    document.getElementById('numberOfBlocks').disabled=false;
+    document.getElementById('element').value="";
+    document.getElementById('element').disabled=false;
+    document.getElementById('confirmButton').disabled=false;
+    document.getElementById('insertButton').disabled=false;
+    document.getElementById('sortButton').disabled=false;
+    document.getElementById('element').style.display='none';
+    document.getElementById('insertButton').style.display='none';
+    document.getElementById('sortButton').style.display='none';
+    document.getElementById("numberOfBlocks").focus();
+    }
+    window.onload=function()
+    {
+    StartArtyom();  
+    document.getElementById("numberOfBlocks").focus();
+    document.getElementById('element').style.display='none';
+    document.getElementById('insertButton').style.display='none';
+    document.getElementById('sortButton').style.display='none';
+    };
+
+    document.getElementById('element').addEventListener('keydown', function(event) {
+    if(event.keyCode == 13) insertNumber();
+});
+    document.getElementById('numberOfBlocks').addEventListener('keydown', function(event) {
+    if(event.keyCode == 13) setNumberOfBlocks();
+});
+artyom.addCommands([
+    {
+     smart:true,
+     indexes:["* elements" ],
+     action:function(i,wildcard)
+     {
+         if(i==0)
+         { 
+            let a;
+            for (a = 0; a < nInW.length; a++) 
+            {
+            if(nInW[a]==wildcard)
+            {
+                wildcard=a;
+                break;
+            }
+            }
+            if(document.getElementById('numberOfBlocks').disabled==false && !(isNaN(wildcard)))
+            {
+            document.getElementById('numberOfBlocks').value=wildcard;
+            setNumberOfBlocks();
+            }
+            else
+            {
+                artyom.say("You can't set number of elements at this stage, please press the reset button to start from the beginning");
+            }
+         }
+     }
+    },
+    {
+     smart:true,
+     indexes:["Insert *" ],
+     action:function(i,wildcard)
+     {
+      if(i==0)
+      {   
+        let a;
+            for (a = 0; a < nInW.length; a++) 
+            {
+            if(nInW[a]==wildcard)
+            {
+                wildcard=a;
+                break;
+            }
+            }
+          if(document.getElementById('insertButton').disabled==false && !(isNaN(wildcard)))
+          {
+            document.getElementById('element').value=parseInt(wildcard);
+            insertNumber();
+          }
+          else 
+          {
+              if(isNaN(wildcard.trim())){
+                  artyom.say(wildcard.trim()+" is not a number");
+              }
+              else
+              {
+                  artyom.say("all the elements have already been inserted");
+              }
+          }
+      }
+     }
+    },
+    {
+        indexes:["Start Sorting","Next"],
+        action:function(i)
+        {
+            if(i==0)
+            {
+                if(document.getElementById("sortButton").disabled==false && document.getElementById("sortButton").innerHTML=="Sort") linearSortStep();
+                else artyom.say("You can't do that at this stage");
+            }
+            if(i==1)
+            {
+                if(document.getElementById("sortButton").disabled==false && document.getElementById("sortButton").innerHTML=="Next") linearSortStep();
+                else artyom.say("You can't do that at this stage");
+            }
+        }
+    }
+]);
+
+
+
+</script>
+</body>
+</html>
